@@ -12,8 +12,8 @@ This repository contains a phylogenetic analysis of the protein family Cofilin.
 - docs/           -Extra documentation, figures, notes
 
 ## Workflow Steps
-1. First we begin by selecting the suitable protein sequences required for the phylogenetic analysis of the Protein family Cofilin.
-   For this project, I have manually selected 10 protein sequences in fasta format from Protein DataBank (https://www.rcsb.org/)
+1. Selecting the suitable protein sequences required for the phylogenetic analysis of the Protein family Cofilin.
+   For this project, 10 sequenxes has been manually selected from the Protein Data Bank (https://www.rcsb.org/)
    The protein sequences are as follows:
    - 1AK6 DESTRIN / HUMAN ADF (https://www.rcsb.org/structure/1AK6) [downloaded on 6/5/2026]
    - 1CFY YEAST COFILIN (https://www.rcsb.org/structure/1CFY)  [downloaded on 6/5/2026]
