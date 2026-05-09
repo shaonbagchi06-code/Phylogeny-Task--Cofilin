@@ -60,12 +60,12 @@ This repository contains a phylogenetic analysis of the protein family Cofilin.
   * 1F7S_1|Chain A|ACTIN DEPOLYMERIZING FACTOR (ADF)|Arabidopsis thaliana (3702)
   * 4LIZ_1|Chain A|Actin-binding protein, cofilin/tropomyosin family protein, putative|Entamoeba histolytica (885318)
 
-- After combing all my 10 sequences into one fasta file, I examined their redundancy using Expasy (Parameter used: 90% max similarity). Finally all the sequences were non-redundant and the following protein members were chosen for further analysis:
+ - After combing all my 10 sequences into one fasta file, I examined their redundancy using Expasy (Parameter used: 90% max similarity). Finally all the sequences were non-redundant and the following protein members were chosen for further analysis:
   
   1AK6 (ADF Pig Destrin), 1CFY (Yeast Cofilin), 1SQC_1(ADF/Cofilin family Presumed Cofilin-related), 4BEX(Human Cofilin-1	ADF-H domain (Cofilin-like family) ), 4LIZ_1	(EhCoactosin (Entamoeba histolytica)	ADF-H domain (Cofilin/tropomyosin family)), 7Q8S_2	(Leishmania major cofilin	ADF-H domain (ADF/Cofilin family) ),
   1F7S_1	(Arabidopsis thaliana ADF1	ADF-H domain (Severin superfamily)), 2MOT_1	(Toxoplasma gondii ADF	ADF-H domain), 9FP8_1	((Mosquito ADF - AgADF1)	ADF-H domain (presumed from family annotation)), 1TVJ	(Chick Cofilin	ADF-H domain (Cofilin/ADF family))
 
-- Further tools Scan Prosite (Expasy) and Prot Param were used to evaluate Sequence lengths and unnecessary sequence elements. Finally the Phase 3 protein sequences were curated into a single fasta document (attached).
+ - Further tools Scan Prosite (Expasy) and Prot Param were used to evaluate Sequence lengths and unnecessary sequence elements. Finally the Phase 3 protein sequences were curated into a single fasta document (attached).
   
 
 3. Next step involved the Multiple Sequence Alignment and Trimming of MSA.
