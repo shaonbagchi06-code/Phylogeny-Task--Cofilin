@@ -1,0 +1,120 @@
+
+import os
+import shutil
+from google.colab import files
+
+print("="*60)
+print("PHYLOGENETIC ANALYSIS WITH IQ-TREE 1.6.12 (OPTIMIZED)")
+print("="*60)
+
+print("\n Installing IQ-TREE 1.6.12...")
+!wget -q https://github.com/Cibiv/IQ-TREE/releases/download/v1.6.12/iqtree-1.6.12-Linux.tar.gz
+!tar -xf iqtree-1.6.12-Linux.tar.gz
+!cp iqtree-1.6.12-Linux/bin/iqtree /usr/local/bin/
+!chmod +x /usr/local/bin/iqtree
+
+
+print("\n IQ-TREE installed:")
+!iqtree --version | head -1
+
+
+print("\n Please upload your FASTA file:")
+uploaded = files.upload()
+
+
+original_name = list(uploaded.keys())[0]
+fasta_name = "alignment.fasta"
+shutil.move(original_name, fasta_name)
+
+print(f"\n File ready: {fasta_name}")
+
+
+print("\n File preview:")
+!head -n 5 {fasta_name}
+
+
+print("\n Alignment statistics:")
+!grep -c "^>" {fasta_name} | xargs echo "Number of sequences:"
+!grep -v "^>" {fasta_name} | head -1 | wc -c | xargs echo "Alignment length:"
+
+
+print("\n Running IQ-TREE with optimized settings...")
+print("   - Ultrafast Bootstrap (faster than standard bootstrap)")
+print("   - BNNI optimization (improves accuracy)")
+print("   - Automatic model selection")
+print("-"*40)
+
+# OPTIMIZED COMMAND:
+# -m TEST: Find best model
+# -B 1000: Ultrafast bootstrap (1000 replicates - FAST and ACCURATE)
+# -bnni: Optimize bootstrap trees (reduces overestimation)
+# -nt AUTO: Use all CPU cores
+# -quiet: Less verbose output
+
+!iqtree -s {fasta_name} -m TEST -B 1000 -bnni -nt AUTO -quiet
+
+print("\n IQ-TREE analysis completed!")
+
+
+print("\n Output files:")
+!ls -lh *.treefile *.iqtree *.log 2>/dev/null
+
+
+print("\n Your phylogenetic tree with bootstrap support values:")
+print("-"*40)
+if os.path.exists("alignment.fasta.treefile"):
+    with open("alignment.fasta.treefile", 'r') as f:
+        tree_content = f.read()
+        print(tree_content[:500])
+        if len(tree_content) > 500:
+            print("... (truncated)")
+    
+   
+    print("\n" + "-"*40)
+    print(" Bootstrap support summary:")
+    !grep -o "[0-9]\+/[0-9]\+" alignment.fasta.treefile | head -10 | xargs echo "Sample bootstrap values (as fractions):"
+else:
+    print(" Tree file not found")
+
+
+print("\n" + "-"*40)
+print(" Best-fit substitution model:")
+!grep -A 3 "Best-fit model" alignment.fasta.iqtree 2>/dev/null | head -5
+
+
+print("\n" + "-"*40)
+print(" Bootstrap analysis summary:")
+!grep -A 5 "Bootstrap analysis" alignment.fasta.iqtree 2>/dev/null | head -6
+
+
+print("\n Downloading results to your computer...")
+print("-"*40)
+
+
+files_to_download = [
+    "alignment.fasta.treefile",
+    "alignment.fasta.iqtree", 
+    "alignment.fasta.log",
+    "alignment.fasta.contree"
+]
+
+for file in files_to_download:
+    if os.path.exists(file):
+        files.download(file)
+        print(f" Downloaded: {file}")
+    else:
+        print(f" File not found: {file}")
+
+print("\n" + "="*60)
+print(" ANALYSIS COMPLETE!")
+print("="*60)
+print("\n Your phylogenetic tree is in: alignment.fasta.treefile")
+print("\n Key differences from standard bootstrap:")
+print("   • Ultrafast bootstrap (B) is 100-1000x FASTER than standard bootstrap (b)")
+print("   • BNNI improves accuracy by optimizing bootstrap trees")
+print("   • 1000 replicates with UFboot = standard 100 replicates with normal bootstrapping")
+print("\n To view the tree:")
+print("   • Download 'alignment.fasta.treefile'")
+print("   • Open with FigTree (https://github.com/rambaut/figtree)")
+print("   • Or upload to iTOL (https://itol.embl.de/)")
+print("\n The .contree file contains the consensus tree if you need it.")
