@@ -62,10 +62,48 @@ This repository documents the complete phylogenetic workflow for the protein fam
        * -nt AUTO: Use all CPU cores
        * -quiet: Less verbose output
       - Output: The resulting tree was exported as myFamilyCofilin_tree.treefile
+      - The tree file was viewed by https://etetoolkit.org/treeview/
 
   5. Phylogenetic Tree Analysis:
-     - 
-        
+
+
+
+
+## REPRODUCIBILITY INSTRUCTIONS:
+
+1. Data Retrieval and Curation:
+   - Retrieve Cofilin family sequences manually fromt Protein Data Bank.
+   - Verify Protein Identitity and classification using Swiss Prot.
+   - Remove redundant sequences via SwissProt curation tools; retain 10 non-redundant representatives: 1AK6, 1CFY, 1SQC_1, 4BEX, 4LIZ_1, 7Q8S_2, 1F7S_1, 2MOT_1, 9FP8_1, 1TVJ
+   - Check physicochemical properties using ProtParam
+   - Save curated sequences as myFamilyCofilin(curated).fasta
+
+2. Multiple Sequence Alignment:
+   - Tool: MAFFT v7.526
+   - Upload myFamilyCofilin(curated).fasta to the MAFFT interactive server or run locally
+   - Parameters:
+     * Strategy: G-INS-i(accurate)
+     * --globalpair
+     * --maxiterate 16
+     * -- reorder
+     * -- leavegappyregion
+    - Save output as myFamilyCofilin_aligned.fasta
+
+3. Alignment Trimming:
+   - Tool: ClipKit (python)
+   - Run in Google Colab or local environment command: !python -m clipkit {simple_name} -o trimmed.fasta -m smart-gap
+   - Save trimmed output as myFamilyCofilin_trimmed.fasta
+
+4. Phylogenetic Tree Construction:
+   - Tool: IQ-TREE v1.6.12
+   - Run in Google Colab or local environment: !python -m clipkit {simple_name} -o trimmed.fasta -m smart-gap
+   - Output tree file: myFamilyCofilin_tree.treefile
+
+5. Tree Visualisation:
+   For Tree Visualisation use any webs erver like https://etetoolkit.org/treeview/ or any application like FigTree or any Newick Viewer. 
+   
+     
+         
    
                 
      
