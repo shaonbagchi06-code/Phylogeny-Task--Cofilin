@@ -40,7 +40,32 @@ This repository documents the complete phylogenetic workflow for the protein fam
 
 3. Alignment Trimming:
    - Tool: ClipKit, executed from Python terminal in Google Colab
-   - Method: The raw
+   - Method: The raw MSA was imported into Google Colab and processed with ClipKit to remove low quality and highly gapped positions.
+   - Reason: Trimming improved the reliability of the alignment by retaining only informative sites for downstream phylogenetic inference.
+   - Input file: myFamilyCofilin_aligned.fasta
+   - Command used: !python -m clipkit {simple_name} -o trimmed.fasta -m smart-gap
+   - What was done:
+      * N-terminal tail (TMITPSSGNSA and equivalents): Trimmed because it is a highly variable, unconserved extension present in only some sequences.Long gap-rich region before the conserved VADE/equivalent motif: Trimmed because it corresponds to highly divergent, poorly aligning insertions/low-complexity regions.
+      * Internal variable loop within the ADF-H domain (around the LPE/KDCRY region): Trimmed because it represents large, non-homologous insertions in sequences like 9FP8_1 that would otherwise force gap expansion in the core alignment.
+      * C-terminal extension beyond the ADF-H domain (the entire 1SQC_1 C-terminal domain): Trimmed because it belongs to a structurally non-homologous domain not present in the other sequences, causing massive misalignment.
+      * Final trailing variable tails (e.g., HH, GPEDL... etc.): Trimmed because they are non-conserved, disordered, or absent in the majority of sequences.
+    - Output file: The final trimmed sequences were exported as myFamilyCofilin_trimmed.fasta.
+
+  4. Phylogenetic Tree Construction:
+     - Tool: IQ-TREE v 1.6.12, executed in the Python environment of Google Colab
+     - Method: The trimmed alignment was analysed in Google Colab using IQ-TREE to infer a maximum likelihood phylogenetic tree.
+     - Command Used: !iqtree -s {fasta_name} -m TEST -B 1000 -bnni -nt AUTO -quiet
+     - Parameters taken:
+       * -m TEST: Find best model
+       * -B 1000: Ultrafast bootstrap (1000 replicates - FAST and ACCURATE)
+       * -bnni: Optimize bootstrap trees (reduces overestimation)
+       * -nt AUTO: Use all CPU cores
+       * -quiet: Less verbose output
+      - Output: The resulting tree was exported as myFamilyCofilin_tree.treefile
+
+  5. Phylogenetic Tree Analysis:
+     - 
+        
    
                 
      
