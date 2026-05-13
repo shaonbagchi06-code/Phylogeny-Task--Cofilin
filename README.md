@@ -65,8 +65,12 @@ This repository documents the complete phylogenetic workflow for the protein fam
       - The tree file was viewed by https://etetoolkit.org/treeview/
 
   5. Phylogenetic Tree Analysis:
-
-
+     The tree is split by a deep root into two distinct groups. Clade 1( 1AK6, 4BEX, 1CFY) is separated from Clade 2 (1F7S,9FP8,4LIZ,7Q8S,1SQC,2MOT), suggesting an ancient gene duplication event or a fundamental functional split within the family.
+     - Clade 1: ADF subgroup: The goruping of 1AK6, 4BEX, and 1CFY represents the classic members of the family. This tight cluster indicates strong sequence and structural conservation consistent with the core actin-depolymerizing function.
+     - Clade 2: Divergent and Specialised Members: The second major clade contains sequences that are significantly diverged, including specialised or evolutionary distant relatives:
+        * 9FP8 and 4LIZ cluster together. They are not typical cofilins but are rather related to the twinfilin family, which share an ADF-H domain but have a completely different biological role.
+        * 1F7S,7Q8S,1SQC and 2MOT form a separate, highly divergent branch. They posses the ancestral ADF-H fold but have potentially evolved distinct regulatory elements or substrate-binding surfaces not found in the classic cofilins
+       - The deep branching of Clade 2 makes the classic cofilins (1AK6 cluster) appear as a derived, monophyletuc cubgroup within a larger, more functionally diverse ADF-H domain superfamily. The tree correctly separates the actin-severing cofilins from the non-severing, domain related proteins twinfilins.
 
 
 ## REPRODUCIBILITY INSTRUCTIONS:
@@ -100,7 +104,10 @@ This repository documents the complete phylogenetic workflow for the protein fam
    - Output tree file: myFamilyCofilin_tree.treefile
 
 5. Tree Visualisation:
-   For Tree Visualisation use any webs erver like https://etetoolkit.org/treeview/ or any application like FigTree or any Newick Viewer. 
+   For Tree Visualisation use any webs erver like https://etetoolkit.org/treeview/ or any application like FigTree or any Newick Viewer.
+
+
+   --------------------------------------------------------------------END OF DOCUMENTATION----------------------------------------------------------------------------
    
      
          
