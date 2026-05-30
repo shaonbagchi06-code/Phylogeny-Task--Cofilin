@@ -1,26 +1,25 @@
-
 import os
 import shutil
+import re
+import time
 from google.colab import files
 
 print("="*60)
-print("PHYLOGENETIC ANALYSIS WITH IQ-TREE 1.6.12 (OPTIMIZED)")
+print("PHYLOGENETIC ANALYSIS WITH IQ-TREE 2.4.0 (LATEST VERSION)")
 print("="*60)
 
-print("\n Installing IQ-TREE 1.6.12...")
-!wget -q https://github.com/Cibiv/IQ-TREE/releases/download/v1.6.12/iqtree-1.6.12-Linux.tar.gz
-!tar -xf iqtree-1.6.12-Linux.tar.gz
-!cp iqtree-1.6.12-Linux/bin/iqtree /usr/local/bin/
-!chmod +x /usr/local/bin/iqtree
-
+print("\n Installing IQ-TREE 2.4.0 (latest stable version)...")
+# Download latest IQ-TREE 2.4.0 (as of 2025-2026)
+!wget -q https://github.com/iqtree/iqtree2/releases/download/v2.4.0/iqtree-2.4.0-Linux.tar.gz
+!tar -xf iqtree-2.4.0-Linux.tar.gz
+!cp iqtree-2.4.0-Linux/bin/iqtree2 /usr/local/local/bin/
+!chmod +x /usr/local/local/bin/iqtree2
 
 print("\n IQ-TREE installed:")
-!iqtree --version | head -1
-
+!iqtree2 --version
 
 print("\n Please upload your FASTA file:")
 uploaded = files.upload()
-
 
 original_name = list(uploaded.keys())[0]
 fasta_name = "alignment.fasta"
@@ -28,93 +27,217 @@ shutil.move(original_name, fasta_name)
 
 print(f"\n File ready: {fasta_name}")
 
-
 print("\n File preview:")
 !head -n 5 {fasta_name}
-
 
 print("\n Alignment statistics:")
 !grep -c "^>" {fasta_name} | xargs echo "Number of sequences:"
 !grep -v "^>" {fasta_name} | head -1 | wc -c | xargs echo "Alignment length:"
 
+# Get current timestamp for unique filenames
+timestamp = time.strftime("%Y%m%d_%H%M%S")
 
-print("\n Running IQ-TREE with optimized settings...")
-print("   - Ultrafast Bootstrap (faster than standard bootstrap)")
-print("   - BNNI optimization (improves accuracy)")
-print("   - Automatic model selection")
+print("\n Running IQ-TREE 2.4.0 with comprehensive settings...")
+print("   - ModelFinder Plus (MFP) for best model selection")
+print("   - Ultrafast Bootstrap (UFBoot) with 1000 replicates")
+print("   - SH-aLRT branch test with 1000 replicates")
+print("   - BNNI optimization for improved accuracy")
+print("   - Automatic thread detection")
 print("-"*40)
 
-# OPTIMIZED COMMAND:
-# -m TEST: Find best model
-# -B 1000: Ultrafast bootstrap (1000 replicates - FAST and ACCURATE)
+# OPTIMIZED COMMAND FOR LATEST IQ-TREE 2.x:
+# -m MFP: ModelFinder Plus (tests all models)
+# -B 1000: Ultrafast bootstrap (1000 replicates)
+# -alrt 1000: SH-aLRT branch test (1000 replicates)
 # -bnni: Optimize bootstrap trees (reduces overestimation)
 # -nt AUTO: Use all CPU cores
-# -quiet: Less verbose output
+# -pre phylo: Prefix for output files
+# -safe: Protect against numerical issues
 
-!iqtree -s {fasta_name} -m TEST -B 1000 -bnni -nt AUTO -quiet
+!iqtree2 -s {fasta_name} -m MFP -B 1000 -alrt 1000 -bnni -nt AUTO -pre phylo -safe
 
 print("\n IQ-TREE analysis completed!")
 
-
 print("\n Output files:")
-!ls -lh *.treefile *.iqtree *.log 2>/dev/null
+!ls -lh phylo.* 2>/dev/null
 
+# Function to parse bootstrap values from contree file
+def parse_bootstrap_values(contree_file):
+    """Parse bootstrap and SH-aLRT values from consensus tree"""
+    if os.path.exists(contree_file):
+        with open(contree_file, 'r') as f:
+            tree = f.read().strip()
+        # Extract numbers following branch separators
+        # Pattern matches numbers in parentheses like )100/85 or )100 or )95/78
+        matches = re.findall(r'\)([\d]+(?:/[\d]+)?)', tree)
+        return matches
+    return []
 
-print("\n Your phylogenetic tree with bootstrap support values:")
+# Generate iTOL link
+def generate_itol_link(tree_file, output_prefix="phylogenetic_tree"):
+    """Generate iTOL upload link from tree file"""
+    if os.path.exists(tree_file):
+        import base64
+        with open(tree_file, 'r') as f:
+            tree_content = f.read()
+        
+        # Encode tree for iTOL URL
+        tree_encoded = base64.b64encode(tree_content.encode()).decode()
+        
+        # Create direct iTOL link
+        itol_link = f"https://itol.embl.de/upload.cgi?tree={tree_encoded}"
+        
+        # Also generate a shorter alternative link
+        itol_alt = "https://itol.embl.de/"
+        
+        return itol_link, itol_alt
+    return None, None
+
+print("\n" + "="*60)
+print("PHYLOGENETIC ANALYSIS RESULTS")
+print("="*60)
+
+# Show bootstrap values summary
+print("\n BOOTSTRAP VALUES SUMMARY:")
 print("-"*40)
-if os.path.exists("alignment.fasta.treefile"):
-    with open("alignment.fasta.treefile", 'r') as f:
+if os.path.exists("phylo.contree"):
+    bootstrap_values = parse_bootstrap_values("phylo.contree")
+    print(f" Found {len(bootstrap_values)} branch support values in consensus tree")
+    print("\n First 10 branch support values (UFBoot/SH-aLRT):")
+    for i, val in enumerate(bootstrap_values[:10], 1):
+        if '/' in val:
+            ufboot, sh_alrt = val.split('/')
+            print(f"  Branch {i}: UFBoot = {ufboot}%, SH-aLRT = {sh_alrt}%")
+        else:
+            print(f"  Branch {i}: UFBoot = {val}%")
+    
+    print(f"\n Saving detailed bootstrap table to 'bootstrap_values.txt'...")
+    with open("bootstrap_values.txt", 'w') as f:
+        f.write("Branch\tUFBoot\tSH-aLRT\n")
+        for i, val in enumerate(bootstrap_values, 1):
+            if '/' in val:
+                ufboot, sh_alrt = val.split('/')
+                f.write(f"{i}\t{ufboot}\t{sh_alrt}\n")
+            else:
+                f.write(f"{i}\t{val}\tN/A\n")
+else:
+    print(" Consensus tree file (phylo.contree) not found")
+
+# Best-fit model
+print("\n" + "-"*40)
+print(" BEST-FIT SUBSTITUTION MODEL:")
+print("-"*40)
+!grep "Best-fit model" phylo.iqtree 2>/dev/null || grep "Best-fit model" phylo.log 2>/dev/null
+
+# SH-aLRT summary
+print("\n" + "-"*40)
+print(" SH-aLRT BRANCH SUPPORT SUMMARY:")
+print("-"*40)
+!grep -A 10 "SH-aLRT" phylo.iqtree 2>/dev/null | head -12
+
+# UFBoot summary
+print("\n" + "-"*40)
+print(" ULTRAFAST BOOTSTRAP SUMMARY:")
+print("-"*40)
+!grep -A 5 "Bootstrap" phylo.iqtree 2>/dev/null | head -8
+
+# Generate iTOL links
+print("\n" + "-"*40)
+print(" ITOL VIEWING LINKS:")
+print("-"*40)
+
+tree_link, alt_link = generate_itol_link("phylo.treefile")
+if tree_link:
+    print("\n Direct iTOL Upload Link (click to view tree):")
+    print(f" {tree_link[:100]}...")
+    print("\n Alternative method:")
+    print(" 1. Go to https://itol.embl.de/")
+    print(" 2. Upload 'phylo.treefile' manually")
+    print(" 3. The tree will display with bootstrap values on branches")
+else:
+    print(" Tree file not found for iTOL link generation")
+
+# Display tree file content
+print("\n" + "-"*40)
+print(" TREE FILE WITH BOOTSTRAP VALUES (first 500 chars):")
+print("-"*40)
+if os.path.exists("phylo.treefile"):
+    with open("phylo.treefile", 'r') as f:
         tree_content = f.read()
         print(tree_content[:500])
         if len(tree_content) > 500:
             print("... (truncated)")
-    
-   
-    print("\n" + "-"*40)
-    print(" Bootstrap support summary:")
-    !grep -o "[0-9]\+/[0-9]\+" alignment.fasta.treefile | head -10 | xargs echo "Sample bootstrap values (as fractions):"
 else:
     print(" Tree file not found")
 
+# Additional file information
+print("\n" + "-"*40)
+print(" OUTPUT FILES SUMMARY:")
+print("-"*40)
+print(" • phylo.treefile     - Main tree with branch lengths")
+print(" • phylo.contree      - Consensus tree with bootstrap/SH-aLRT values")
+print(" • phylo.iqtree       - Full analysis report")
+print(" • phylo.log          - Detailed log file")
+print(" • phylo.model.gz     - Model checkpoint file")
+print(" • bootstrap_values.txt - Extracted support values (tabular format)")
 
 print("\n" + "-"*40)
-print(" Best-fit substitution model:")
-!grep -A 3 "Best-fit model" alignment.fasta.iqtree 2>/dev/null | head -5
-
-
-print("\n" + "-"*40)
-print(" Bootstrap analysis summary:")
-!grep -A 5 "Bootstrap analysis" alignment.fasta.iqtree 2>/dev/null | head -6
-
-
-print("\n Downloading results to your computer...")
+print(" DOWNLOAD RESULTS TO YOUR COMPUTER:")
 print("-"*40)
 
-
+# Download all important files
 files_to_download = [
-    "alignment.fasta.treefile",
-    "alignment.fasta.iqtree", 
-    "alignment.fasta.log",
-    "alignment.fasta.contree"
+    "phylo.treefile",
+    "phylo.contree", 
+    "phylo.iqtree",
+    "phylo.log",
+    "bootstrap_values.txt"
 ]
 
 for file in files_to_download:
     if os.path.exists(file):
         files.download(file)
-        print(f" Downloaded: {file}")
+        print(f" ✓ Downloaded: {file}")
     else:
-        print(f" File not found: {file}")
+        print(f" ✗ File not found: {file}")
 
 print("\n" + "="*60)
 print(" ANALYSIS COMPLETE!")
 print("="*60)
-print("\n Your phylogenetic tree is in: alignment.fasta.treefile")
-print("\n Key differences from standard bootstrap:")
-print("   • Ultrafast bootstrap (B) is 100-1000x FASTER than standard bootstrap (b)")
-print("   • BNNI improves accuracy by optimizing bootstrap trees")
-print("   • 1000 replicates with UFboot = standard 100 replicates with normal bootstrapping")
-print("\n To view the tree:")
-print("   • Download 'alignment.fasta.treefile'")
-print("   • Open with FigTree (https://github.com/rambaut/figtree)")
-print("   • Or upload to iTOL (https://itol.embl.de/)")
-print("\n The .contree file contains the consensus tree if you need it.")
+
+print("\n INTERPRETING YOUR RESULTS:")
+print("-"*40)
+print(" Branch Support Values (higher = more reliable):")
+print("   • UFBoot > 95%: Strong support (standard for publication)")
+print("   • UFBoot 70-94%: Moderate support")
+print("   • UFBoot < 70%: Weak support (consider ambiguous)")
+print("\n   • SH-aLRT > 80%: Good branch support")
+print("   • SH-aLRT 70-80%: Moderate support")
+print("   • SH-aLRT < 70%: Poor support")
+
+print("\n Next Steps:")
+print(" 1. View tree online: Click the iTOL link above")
+print(" 2. Or download 'phylo.treefile' and open with FigTree")
+print(" 3. Check 'bootstrap_values.txt' for complete support table")
+print(" 4. Review 'phylo.iqtree' for detailed statistical analysis")
+
+print("\n NOTES:")
+print(" • UFBoot values are shown as percentages (0-100)")
+print(" • SH-aLRT values appear as 'UFBoot/SH-aLRT' in .contree file")
+print(" • Both values are now included on all branches")
+
+# Optional: Generate enhanced visualization commands
+print("\n" + "-"*40)
+print(" ENHANCED VISUALIZATION (optional):")
+print("-"*40)
+print(" To color branches by bootstrap support in R:")
+print("""
+   library(ape)
+   library(ggplot2)
+   tree <- read.tree("phylo.treefile")
+   bootstrap <- read.table("bootstrap_values.txt", header=TRUE)
+   plot(tree, show.node.label=TRUE, cex=0.6)
+   nodelabels(bootstrap$UFBoot, adj=c(1.2,1.2), frame="none")
+""")
+
+print("\n" + "="*60)
