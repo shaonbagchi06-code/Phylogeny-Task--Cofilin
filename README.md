@@ -16,10 +16,10 @@ This repository documents the complete phylogenetic workflow for the protein fam
 ## WORKFLOW STEPS
 
 1. Dataset Retreival and Curation:
-   - Source: Retreived 24 sequences from Protein Data Bank manually for the Cofilin family and corresponding annotations were checked on SwissProt to ensure reliable protein identity and classification.
+   - Source: Retreived 30 sequences from Protein Data Bank manually for the Cofilin family and corresponding annotations were checked on SwissProt to ensure reliable protein identity and classification.
    - Tools/Database: PDB and SwissProt were used to obtain curated protein records and verify sequence quality
    - Curation Descisions:
-     *  Redundant sequences were removed by SwissPort and only the 10 representative non duplicating sequences were retained (1AK6, 1CFY, 1SQC_1, 4BEX, 4LIZ_1, 7Q8S_2, 1F7S_1, 2MOT_1, 9FP8_1, 1TVJ)
+     *  Redundant sequences were removed by SwissPort and only the 20 representative non duplicating sequences were retained (1AK6, 1CFY, 1SQC_1, 4BEX, 4LIZ_1, 7Q8S_2, 1F7S_1, 2MOT_1, 9FP8_1, 1TVJ)
      *  ProtParam was used to examine basic physicochemical properties and help confirm sequence consistency.
      *  The final dataset was curated to include a non-redundant set of Cofilin homologs suitable for phylogenetic analysis.
    - Curated dataset filename: myFamilyCofilin(curated).fasta
