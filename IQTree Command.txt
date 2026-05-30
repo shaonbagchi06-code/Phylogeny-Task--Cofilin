@@ -153,17 +153,6 @@ if tree_link:
 else:
     print(" Tree file not found for iTOL link generation")
 
-print("\n" + "-"*40)
-print(" TREE FILE WITH BOOTSTRAP VALUES (first 500 chars):")
-print("-"*40)
-if os.path.exists("phylo.treefile"):
-    with open("phylo.treefile", 'r') as f:
-        tree_content = f.read()
-        print(tree_content[:500])
-        if len(tree_content) > 500:
-            print("... (truncated)")
-else:
-    print(" Tree file not found")
 
 
 print("\n" + "-"*40)
