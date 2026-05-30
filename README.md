@@ -19,9 +19,11 @@ This repository documents the complete phylogenetic workflow for the protein fam
    - Source: Retreived 30 sequences from Protein Data Bank manually for the Cofilin family and corresponding annotations were checked on SwissProt to ensure reliable protein identity and classification.
    - Tools/Database: PDB and SwissProt were used to obtain curated protein records and verify sequence quality
    - Curation Descisions:
-     *  Redundant sequences were removed by SwissPort and only the 20 representative non duplicating sequences were retained (1AK6, 1CFY, 1SQC_1, 4BEX, 4LIZ_1, 7Q8S_2, 1F7S_1, 2MOT_1, 9FP8_1, 1TVJ)
+     *  Redundant sequences were removed by SwissPort and only the 20 representative non duplicating sequences were retained 
      *  ProtParam was used to examine basic physicochemical properties and help confirm sequence consistency.
      *  The final dataset was curated to include a non-redundant set of Cofilin homologs suitable for phylogenetic analysis.
+   - Rationale Behind choosing all the sequences: The initial 30 sequences were selected according to standard methods for phylogenetic analysis of the ADF/CFL gene family, which emphasize comprehensive taxonomic sampling and inclusion of known functional diversity . Specifically, the selection aimed to: (i) represent major evolutionary lineages, including vertebrates (e.g., human, mouse, zebrafish, chicken), plants (e.g., Arabidopsis, rice), fungi (e.g., yeast), and protists (e.g., Dictyostelium, Plasmodium), to capture deep evolutionary relationships and provide outgroups for rooting the tree ; (ii) include multiple paralogs (e.g., cofilin-1, cofilin-2, destrin) because the ADF/CFL family underwent gene duplications in vertebrate and plant lineages, producing functionally distinct subclasses that are tissue-specifically expressed and have diverged biochemical activities ; and (iii) ensure sequence quality by excluding isoforms with stop codons or frameshifts, as only fully annotated proteins from complete genomes were chosen . The final set of 30 thus reflects a balanced, non-redundant sampling strategy designed to investigate both ancient duplications (e.g., the three vertebrate classes) and more recent functional diversification within specific subfamilies .
+     From these, Expasy’s "Decrease Redundancy" tool removed 10 sequences because they exceeded a 90% sequence identity threshold, keeping only 20 non‑redundant representatives. This reduction eliminates sampling bias, improves alignment and computational efficiency, and ensures that subsequent phylogenetic analysis focuses on evolutionarily informative divergence rather than nearly identical copies.
    - Curated dataset filename: myFamilyCofilin(curated).fasta
 
 2. Multiple Sequence Alignment:
@@ -45,40 +47,44 @@ This repository documents the complete phylogenetic workflow for the protein fam
    - Input file: myFamilyCofilin_aligned.fasta
    - Command used: !python -m clipkit {simple_name} -o trimmed.fasta -m smart-gap
    - What was done:
-      * N-terminal tail (TMITPSSGNSA and equivalents): Trimmed because it is a highly variable, unconserved extension present in only some sequences.Long gap-rich region before the conserved VADE/equivalent motif: Trimmed because it corresponds to highly divergent, poorly aligning insertions/low-complexity regions.
-      * Internal variable loop within the ADF-H domain (around the LPE/KDCRY region): Trimmed because it represents large, non-homologous insertions in sequences like 9FP8_1 that would otherwise force gap expansion in the core alignment.
-      * C-terminal extension beyond the ADF-H domain (the entire 1SQC_1 C-terminal domain): Trimmed because it belongs to a structurally non-homologous domain not present in the other sequences, causing massive misalignment.
-      * Final trailing variable tails (e.g., HH, GPEDL... etc.): Trimmed because they are non-conserved, disordered, or absent in the majority of sequences.
-    - Output file: The final trimmed sequences were exported as myFamilyCofilin_trimmed.fasta.
+     The trimming removed two main categories of regions. First, large N‑terminal and C‑terminal extensions unique to a few sequences—such as the long N‑terminal tail in Chaetomium , chicken (NP_001020250.1), and the multidomain protein 1SQC_1—were excised because they aligned only to gaps in most other sequences. Second, internal low‑complexity or repeat‑rich inserts, notably the poly‑lysine/asparagine repeats in Plasmodium (XP_001350375.1) and the repetitive dipeptide runs in Tetrahymena (P10949.1), were trimmed as they created blocks where a single sequence carried >50% gaps relative to the rest. By removing these hypervariable, insertion‑only columns, the resulting trimmed alignment eliminated all positions with >50% gaps, thereby converting a gap‑dominated, phylogenetically unreliable alignment into a compact, information‑rich block where every column contains data from the majority of sequences. This resolves the problem by ensuring that downstream analyses (e.g., distance calculations or tree building) are no longer biased by spurious or misaligned gap‑rich regions.
 
   4. Phylogenetic Tree Construction:
-     - Tool: IQ-TREE v 1.6.12, executed in the Python environment of Google Colab
+     - Tool: IQ-TREE v 2.4.0, executed in the Python environment of Google Colab
      - Method: The trimmed alignment was analysed in Google Colab using IQ-TREE to infer a maximum likelihood phylogenetic tree.
      - Command Used: !iqtree -s {fasta_name} -m TEST -B 1000 -bnni -nt AUTO -quiet
      - Parameters taken:
-       * -m TEST: Find best model
-       * -B 1000: Ultrafast bootstrap (1000 replicates - FAST and ACCURATE)
+       * -m MFP: ModelFinder Plus (tests all models)
+       * -B 1000: Ultrafast bootstrap (1000 replicates)
+       * -alrt 1000: SH-aLRT branch test (1000 replicates)
        * -bnni: Optimize bootstrap trees (reduces overestimation)
        * -nt AUTO: Use all CPU cores
-       * -quiet: Less verbose output
-      - Output: The resulting tree was exported as myFamilyCofilin_tree.treefile
-      - The tree file was viewed by https://etetoolkit.org/treeview/
+       * -pre phylo: Prefix for output files
+       * -safe: Protect against numerical issues
+    - Output: The resulting tree was exported as phylo.treefile
+         Other documents like bootstrap values, log, contree were also downloaded as phylo.log, phylo.contree, bootstrap_values (all are attached)
+    - The tree file was viewed by iTOL
 
   5. Phylogenetic Tree Analysis:
-     The tree is split by a deep root into two distinct groups. Clade 1( 1AK6, 4BEX, 1CFY) is separated from Clade 2 (1F7S,9FP8,4LIZ,7Q8S,1SQC,2MOT), suggesting an ancient gene duplication event or a fundamental functional split within the family.
-     - Clade 1: ADF subgroup: The goruping of 1AK6, 4BEX, and 1CFY represents the classic members of the family. This tight cluster indicates strong sequence and structural conservation consistent with the core actin-depolymerizing function.
-     - Clade 2: Divergent and Specialised Members: The second major clade contains sequences that are significantly diverged, including specialised or evolutionary distant relatives:
-        * 9FP8 and 4LIZ cluster together. They are not typical cofilins but are rather related to the twinfilin family, which share an ADF-H domain but have a completely different biological role.
-        * 1F7S,7Q8S,1SQC and 2MOT form a separate, highly divergent branch. They posses the ancestral ADF-H fold but have potentially evolved distinct regulatory elements or substrate-binding surfaces not found in the classic cofilins
-       - The deep branching of Clade 2 makes the classic cofilins (1AK6 cluster) appear as a derived, monophyletuc cubgroup within a larger, more functionally diverse ADF-H domain superfamily. The tree correctly separates the actin-severing cofilins from the non-severing, domain related proteins twinfilins.
+         The phylogenetic tree separates the cofilin/ADF family into three major clades. Vertebrate sequences (Destrin, cofilin-1, cofilin-2 from human, rat, chicken, and zebrafish) form one clade, indicating that gene duplications early in vertebrate evolution gave rise to functionally distinct paralogs: destrin primarily severs actin filaments, while cofilins mainly depolymerize them, with tissue-specific expression (cofilin-2 in muscle, cofilin-1 ubiquitous). Invertebrates and protists (Dictyostelium, Leishmania, C. elegans, Anopheles, Toxoplasma) form a second clade, where single-copy homologs and longer branch lengths suggest accelerated evolution linked to diverse life cycles (e.g., parasitism). Plants (Arabidopsis thaliana and two additional Arabidopsis sequences) form a distinct third clade, reflecting lineage-specific gene duplications that allow fine-tuned actin regulation in root hairs, pollen tubes, and stress responses.
+Outgroup placement using Tetrahymena, Plasmodium, and coactosin (Entamoeba) confirms that cofilins originated early in eukaryotic evolution before the divergence of animals, plants, and fungi. The absence of fungal sequences from this tree suggests they would branch near protists. All sequences retain the conserved ADF-H actin-binding domain, but regulatory mechanisms differ: vertebrate cofilins have a Ser-3 phosphorylation site (inactivated by LIM kinase), while many protist and plant homologs lack this precise regulation, relying instead on pH or PIP2 binding. Longer branches for parasitic protists (Leishmania, Plasmodium, Toxoplasma) indicate accelerated evolution, likely driven by host-pathogen arms races and adaptation to intracellular actin-based motility. Thus, the tree reveals that the cofilin family evolved via ancient and lineage-specific duplications, producing paralogs with specialized actin-remodeling functions across eukaryotes.
 
+6. LONG BRANCH ATTRACTION: 
+ Long-branch attraction (LBA) is a phylogenetic artifact where rapidly evolving lineages (long branches) are incorrectly inferred as closely related due to convergent or homoplastic substitutions, rather than true shared ancestry. It occurs because high mutation rates increase the probability of multiple substitutions at the same site, erasing phylogenetic signal and causing unrelated long-branch taxa to cluster together, especially when using simpler evolutionary models that underestimate multiple hits. LBA is exacerbated by insufficient taxon sampling, unequal evolutionary rates among lineages, and model misspecification. Common mitigation approaches include:
+(1) using more realistic substitution models (e.g., Gamma-distributed rates, mixture models, or site-heterogeneous models like CAT-BP)
+(2) increasing taxon sampling to break long branches
+(3) removing fast-evolving or saturated sites
+(4) using tree‑likelihood methods that account for rate variation across sites
+(5) performing data recoding (e.g., Dayhoff recoding for amino acids) to reduce homoplasy.
+
+The tree for the Cofilin family includes several potential long-branch attraction risks. The deepest branches—Tetrahymena, Plasmodium, and Coactosin (Entamoeba)—all show notably longer branch lengths compared to most other taxa, raising concern that LBA might artificially group these three together as an outgroup clade when they may not share recent common ancestry. Similarly, Thermococcus (an archaeal sequence) and Cofilin Chaetomium (a fungus) also have elongated branches; if true, LBA could incorrectly pull them toward the root or toward each other. The placement of Plasmodium (which contains long, repetitive, low‑complexity inserts) is particularly suspect. 
 
 ## REPRODUCIBILITY INSTRUCTIONS:
 
 1. Data Retrieval and Curation:
    - Retrieve Cofilin family sequences manually fromt Protein Data Bank.
    - Verify Protein Identitity and classification using Swiss Prot.
-   - Remove redundant sequences via SwissProt curation tools; retain 10 non-redundant representatives: 1AK6, 1CFY, 1SQC_1, 4BEX, 4LIZ_1, 7Q8S_2, 1F7S_1, 2MOT_1, 9FP8_1, 1TVJ
+   - Remove redundant sequences via SwissProt curation tools; retain 20 non-redundant representatives: 
    - Check physicochemical properties using ProtParam
    - Save curated sequences as myFamilyCofilin(curated).fasta
 
@@ -99,12 +105,12 @@ This repository documents the complete phylogenetic workflow for the protein fam
    - Save trimmed output as myFamilyCofilin_trimmed.fasta
 
 4. Phylogenetic Tree Construction:
-   - Tool: IQ-TREE v1.6.12
+   - Tool: IQ-TREE v 2.4.0
    - Run in Google Colab or local environment: !python -m clipkit {simple_name} -o trimmed.fasta -m smart-gap
-   - Output tree file: myFamilyCofilin_tree.treefile
+   - Output tree file: phylo.treefile
 
 5. Tree Visualisation:
-   For Tree Visualisation use any webs erver like https://etetoolkit.org/treeview/ or any application like FigTree or any Newick Viewer.
+   For Tree Visualisation use any webs erver like iTOL any downloadable application like FigTree or any Newick Viewer.
 
 
    --------------------------------------------------------------------END OF DOCUMENTATION----------------------------------------------------------------------------
